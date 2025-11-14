@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/_ui/Button";
 import InputBox from "@/components/_ui/InputBox";
 import React, { useState, useEffect } from "react";
@@ -71,13 +72,34 @@ const AuthForm: React.FC = () => {
 
             setLoading(true);
             try {
-                
-
-                // Move to OTP verification
-                setMode("otp");
-                setSuccess("");
-            } catch (err) {
-                setError("An unexpected error occurred. Please try again.");
+                const res = await fetch('/api/auth/regsiter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: formData.name,
+                        email: formData.email,
+                        password: formData.password
+                    })
+                });
+                const result = await res.json();
+                if (!res.ok) {
+                    if (result.error) {
+                        setError(result.error);
+                    } else if (result.message) {
+                        setError(result.message);
+                    } else {
+                        setError('Registration failed. Please try again.');
+                    }
+                    return;
+                }
+                setSuccess('Account created! Please sign in.');
+                setMode('login');
+                updateFormData('password', '');
+                updateFormData('confirmPassword', '');
+                updateFormData('name', '');
+                updateFormData('email', '');
+            } catch (err: any) {
+                setError(err.message || 'An unexpected error occurred.');
             } finally {
                 setLoading(false);
             }
@@ -116,11 +138,18 @@ const AuthForm: React.FC = () => {
 
             setLoading(true);
             try {
-                
-
-                router.push("/dashboard");
-            } catch (err) {
-                setError("An unexpected error occurred. Please try again.");
+                const result = await signIn('credentials', {
+                    email: formData.email,
+                    password: formData.password,
+                    redirect: false
+                });
+                if (result?.error) {
+                    setError(result.error || 'Login failed');
+                } else {
+                    router.push('/dashboard');
+                }
+            } catch (err: any) {
+                setError(err.message || 'An unexpected error occurred.');
             } finally {
                 setLoading(false);
             }
@@ -133,24 +162,15 @@ const AuthForm: React.FC = () => {
             return;
         }
 
-        setLoading(true);
-        setError("");
-        try {
-            // TODO: Implement forgot password flow
-            setSuccess("");
-        } catch (err) {
-            setError("An unexpected error occurred. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+        setError('Forgot password feature is not yet implemented.');
     };
 
     const handleGoogleLogin = () => {
-        // TODO: Implement Google OAuth login functionality
+        signIn('google', { redirect: false }).then(() => router.push('/dashboard'));
     };
 
     const handleResendOTP = async () => {
-        // TODO: Implement resend OTP functionality
+        setError('OTP feature is not yet implemented.');
     };
 
     return (

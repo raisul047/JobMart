@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
+import Navbar from '@/components/Navbar';
+import SessionProvider from '@/components/SessionProvider';
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -29,7 +31,10 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${inter.variable} antialiased bg-background text-foreground`}
       >
-        {children}
+        <SessionProvider>
+          <Navbar />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );

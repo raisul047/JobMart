@@ -8,16 +8,16 @@ export const POST = asyncHandler(
         const existingUser = await UserModel.findOne({ email: data.body.email });
         if (existingUser) throw APIError.conflict('User with this email already exists');
 
-
         const user: IUser = await UserModel.create({
-            ...data.body
+            ...data.body,
+            isVerified: true // Auto-verify for dev purposes
         })
 
         // TODO: Send verification email here
 
         return {
             data: user.toJSON(),
-            message: 'Login successful'
+            message: 'Signup successful'
         };
     },
     RegisterSchema
